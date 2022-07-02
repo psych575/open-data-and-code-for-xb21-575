@@ -1,0 +1,92 @@
+# choice bayesian 
+
+model{
+  for (i in 1:ns){
+    alpha1[i] ~ dnorm(miu_alpha1,lambda_alpha1)
+    alpha2[i] ~ dnorm(miu_alpha2,lambda_alpha2)
+    alpha3[i] ~ dnorm(miu_alpha3,lambda_alpha3)
+    alpha4[i] ~ dnorm(miu_alpha4,lambda_alpha4)
+    beta1[i] ~ dnorm(miu_beta1,lambda_beta1)
+    beta2[i] ~ dnorm(miu_beta2,lambda_beta2)
+    beta3[i] ~ dnorm(miu_beta3,lambda_beta3)
+    beta4[i] ~ dnorm(miu_beta4,lambda_beta4)
+    fai1[i] ~ dnorm(miu_fai1,lambda_fai1)
+    fai2[i] ~ dnorm(miu_fai2,lambda_fai2)
+    b01[i] ~ dnorm(miu_b01,lambda_b01)
+    b11[i] ~ dnorm(miu_b11,lambda_b11)
+    e1[i] ~ dnorm(miu_e1,lambda_e1)
+    b02[i] ~ dnorm(miu_b02,lambda_b02)
+    b12[i] ~ dnorm(miu_b12,lambda_b12)
+    e2[i] ~ dnorm(miu_e2,lambda_e2)
+
+    for (j in 1:nt0){
+      U1[i,j] <- Ms1[i,j] - alpha1[i]*(Ms1[i,j]-Mo1[i,j])*atype1[i,j] - beta1[i]*(Mo1[i,j]-Ms1[i,j])*btype1[i,j]
+      U2[i,j] <- Ms2[i,j] -(alpha1[i]+alpha2[i])*(Ms2[i,j]-Mo2[i,j])*atype2[i,j] - (beta1[i]+beta2[i])*(Mo2[i,j]-Ms2[i,j])*btype2[i,j]
+
+      delta_U1[i,j] <- 10 - U1[i,j] 
+      delta_U2[i,j] <- 10 - U2[i,j] 
+    
+      p1[i,j] <- 1/(1+exp(-fai1[i]*delta_U1[i,j]))
+      p2[i,j] <- 1/(1+exp(-(fai1[i]+fai2[i])*delta_U2[i,j]))
+
+      choice_1[i,j] ~ dbin(p1[i,j],1)
+      choice_2[i,j] ~ dbin(p2[i,j],1)
+    }
+
+    for (j in 1:nt1){
+      U1v[i,j] <- Ms1_v[i,j] - alpha3[i]*(Ms1_v[i,j]-Mo1_v[i,j])*atype1_v[i,j] - beta3[i]*(Mo1_v[i,j]-Ms1_v[i,j])*btype1_v[i,j]
+      U2v[i,j] <- Ms2_v[i,j] - alpha3[i]*(Ms2_v[i,j]-Mo2_v[i,j])*atype2_v[i,j] - beta3[i]*(Mo2_v[i,j]-Ms2_v[i,j])*btype2_v[i,j]
+
+      U1iv[i,j] <- Ms1_iv[i,j] - (alpha3[i]+alpha4[i])*(Ms1_iv[i,j]-Mo1_iv[i,j])*atype1_iv[i,j] - (beta3[i]+beta4[i])*(Mo1_iv[i,j]-Ms1_iv[i,j])*btype1_iv[i,j]
+      U2iv[i,j] <- Ms2_iv[i,j] - (alpha3[i]+alpha4[i])*(Ms2_iv[i,j]-Mo2_iv[i,j])*atype2_iv[i,j] - (beta3[i]+beta4[i])*(Mo2_iv[i,j]-Ms2_iv[i,j])*btype2_iv[i,j]
+
+      delta_Uv[i,j] <- U1v[i,j] - U2v[i,j]
+      delta_Uiv[i,j] <- U1iv[i,j] - U2iv[i,j]
+      
+      miu_v[i,j] <- b01[i] + b11[i]*delta_Uv[i,j]
+      miu_iv[i,j] <- (b01[i]+b02[i]) +(b11[i]+b12[i])*delta_Uiv[i,j]
+
+      rating_v[i,j] ~ dnorm(miu_v[i,j],e1[i])
+      rating_iv[i,j] ~ dnorm(miu_iv[i,j],e2[i])
+    }
+
+  }
+
+# Priors
+ miu_alpha1 ~ dnorm(0,1)
+ lambda_alpha1 ~ dgamma(.1,.1)
+ miu_alpha2 ~ dnorm(0,1)
+ lambda_alpha2 ~ dgamma(.1,.1)
+ miu_alpha3 ~ dnorm(0,1)
+ lambda_alpha3 ~ dgamma(.1,.1)
+ miu_alpha4 ~ dnorm(0,1)
+ lambda_alpha4 ~ dgamma(.1,.1)
+
+ miu_beta1 ~ dnorm(0,1)
+ lambda_beta1 ~ dgamma(.1,.1)
+ miu_beta2 ~ dnorm(0,1)
+ lambda_beta2 ~ dgamma(.1,.1)
+ miu_beta3 ~ dnorm(0,1)
+ lambda_beta3 ~ dgamma(.1,.1)
+ miu_beta4 ~ dnorm(0,1)
+ lambda_beta4 ~ dgamma(.1,.1)
+
+ miu_fai1 ~ dnorm(0,1)
+ lambda_fai1 ~ dgamma(.1,.1)
+ miu_fai2 ~ dnorm(0,1)
+ lambda_fai2 ~ dgamma(.1,.1)
+
+ miu_b01 ~ dnorm(0,1)
+ lambda_b01~ dgamma(.1,.1)
+ miu_b11 ~ dnorm(0,1)
+ lambda_b11 ~ dgamma(.1,.1)
+ miu_e1 ~ dnorm(0,1)
+ lambda_e1 ~ dgamma(.1,.1)
+
+ miu_b02 ~ dnorm(0,1)
+ lambda_b02~ dgamma(.1,.1)
+ miu_b12 ~ dnorm(0,1)
+ lambda_b12 ~ dgamma(.1,.1)
+ miu_e2 ~ dnorm(0,1)
+ lambda_e2 ~ dgamma(.1,.1)
+}
